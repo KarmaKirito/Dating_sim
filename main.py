@@ -38,7 +38,7 @@ for button in buttons_menu:
 
 def check_date():
     current_date = datetime.date.today()
-    target_date = datetime.date(2023, 6, 28)
+    target_date = datetime.date(2023, 6, 29)
 
     if current_date == target_date:
         return True
