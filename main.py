@@ -1,5 +1,6 @@
-import pygame, sys
 import datetime
+import pygame
+import sys
 
 pygame.init()
 RES = (1024, 740)
@@ -23,15 +24,22 @@ Elara_playing_with_animals = pygame.image.load('Dating_sim_pic/Elara_playing_wit
 Elara_suprised = pygame.image.load('Dating_sim_pic/Elara_suprised.jpg')
 Squirrel_point = pygame.image.load('Dating_sim_pic/Point_at_squirrrel.jpg')
 Elara_explain = pygame.image.load('Dating_sim_pic/Elara_explain.jpg')
+Elara_with_animals = pygame.image.load('Dating_sim_pic/Elara_with_animals.jpg')
+Elara_stroke_bunny = pygame.image.load('Dating_sim_pic/Elara_bunny.jpg')
+Elara_admired = pygame.image.load('Dating_sim_pic/Elara_admired.jpg')
+Elara_ask = pygame.image.load('Dating_sim_pic/Elara_ask.jpg')
+Elara_end_chap1 = pygame.image.load('Dating_sim_pic/Elara_embark_adventure.jpg')
+images = [play_bg1, squirrel_bg, paused_squirrel_bg, paused_squirrel_bg2, running_squirrel, enchanted_cave, persistent_squirrel,
+          Elara, Elara_playing_with_animals, Elara_suprised, Squirrel_point, Elara_explain,]
+pygame.mixer.music.load('Otjanbird-Pt.-II.mp3')
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(1)
 user_name = ''
 messages = [' ']
 active_x = 0
 message = messages[active_x]
 counter = 0
-speed = 1
-'''pygame.mixer.music.load('Renai Circulation - Sengoku Nadeko.mp3')
-pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(1)'''
+speed = 2
 for button in buttons_menu:
     button.set_alpha(200)
 
@@ -122,11 +130,29 @@ def get_font(size):
 
 def setting():
     global buttons_menu
-    Back = Button(buttons_menu[1], 'Back', (RES[0] / 2, 600), get_font(30), (0, 0, 0), (255, 255, 255))
+    Back = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
+    font = get_font(30)
+    font2 = get_font(40)
+    volume_up_button = Button(None, '+', (480, 625), font, (255, 255, 255), (0, 0, 0))
+    volume_down_button = Button(None, '-', (520 + 40, 625), font, (255, 255, 255), (0, 0, 0))
+    MUSIC_1_X = 100
+    MUSIC_1 = Button(image=None, text_input='Renai circulation', font=font2, pos=(540, MUSIC_1_X),
+                     base_color='Gold',
+                     hovering_color=(255, 255, 255))
+    MUSIC_2 = Button(image=None, text_input='ChinaX', font=font2, pos=(520, MUSIC_1_X+150), base_color='Gold',
+                     hovering_color=(255, 255, 255))
+    MUSIC_3 = Button(image=None, text_input='base', font=font2, pos=(520, MUSIC_1_X+300), base_color='Gold',
+                     hovering_color=(255, 255, 255))
+    MUSIC_STOP = Button(image=None, text_input='Mute', font=font2, pos=(520, MUSIC_1_X+450), base_color='Gold',
+                        hovering_color=(255, 255, 255))
     while True:
         setting_mouse_pos = pygame.mouse.get_pos()
         screen.fill((100, 100, 100))
-        list = [Back]
+        list = [Back, MUSIC_1, MUSIC_2, MUSIC_3, MUSIC_STOP, volume_down_button, volume_up_button]
+        create_button_bg(520, 100, 750, 75, (247, 191, 121))
+        create_button_bg(520, 250, 300, 75, (247, 191, 121))
+        create_button_bg(520, 400, 300, 75, (247, 191, 121))
+        create_button_bg(520, 550, 300, 75, (247, 191, 121))
         change_update(setting_mouse_pos, list)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -135,6 +161,33 @@ def setting():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Back.checkforInput(setting_mouse_pos):
                     Menu()
+                if MUSIC_1.checkforInput(setting_mouse_pos):
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load('Renai Circulation - Sengoku Nadeko.mp3')
+                    pygame.mixer.music.play(-1)
+                if MUSIC_2.checkforInput(setting_mouse_pos):
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load('ANIME_GAME_PICS/ChinaX-Nightcore.mp3')
+                    pygame.mixer.music.play(-1)
+                if MUSIC_3.checkforInput(setting_mouse_pos):
+                    pygame.mixer.music.stop()
+                    pygame.mixer.music.load('Otjanbird-Pt.-II.mp3')
+                    pygame.mixer.music.play(-1)
+                if volume_up_button.checkforInput(setting_mouse_pos):
+                    current_volume = pygame.mixer.music.get_volume()
+                    if current_volume <= 0.9:
+                        pygame.mixer.music.set_volume(current_volume + 0.1)
+                    else:
+                        pygame.mixer.music.set_volume(1.0)
+                if volume_down_button.checkforInput(setting_mouse_pos):
+                    current_volume = pygame.mixer.music.get_volume()
+                    if current_volume >= 0.1:
+                        pygame.mixer.music.set_volume(current_volume - 0.1)
+                    else:
+                        pygame.mixer.music.set_volume(0)
+                if MUSIC_STOP.checkforInput(setting_mouse_pos):
+                    pygame.mixer.music.set_volume(0)
+
         pygame.display.update()
         pygame.display.flip()
 
@@ -229,6 +282,16 @@ def play():
                                 playing_bg1 = Squirrel_point
                             elif active_x == 14:
                                 playing_bg1 = Elara_explain
+                            elif active_x == 15:
+                                playing_bg1 = Elara_with_animals
+                            elif active_x == 16:
+                                playing_bg1 = Elara_stroke_bunny
+                            elif active_x == 17:
+                                playing_bg1 = Elara_admired
+                            elif active_x == 18:
+                                playing_bg1 = Elara_ask
+                            elif active_x == 19:
+                                playing_bg1 = Elara_end_chap1
                             else:
                                 playing_bg1 = play_bg1
                             done = False
@@ -239,29 +302,6 @@ def play():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         paused = not paused
-                    if event.key == pygame.K_RETURN:
-                        if done and active_x < len(messages) - 1:
-                            active_x += 1
-                            transition_counter = transition_time
-                            if active_x == 2:
-                                playing_bg1 = squirrel_bg
-                            elif active_x == 3:
-                                playing_bg1 = paused_squirrel_bg
-                            elif active_x == 4:
-                                playing_bg1 = paused_squirrel_bg2
-                            elif active_x == 5 or active_x == 6:
-                                playing_bg1 = running_squirrel
-                            elif active_x == 7:
-                                playing_bg1 = persistent_squirrel
-                            elif active_x == 8:
-                                playing_bg1 = enchanted_cave
-                            else:
-                                playing_bg1 = play_bg1
-                            done = False
-                            message = messages[active_x]
-                            counter = 0
-                        else:
-                            counter = speed * len(message)
             arrow_rect = arrow_surface.get_rect(center=(arrow_pos_x, 650))
             if done:
                 pygame.draw.polygon(arrow_surface, (100, 100, 100), [(0, 0), (0, 50), (50, 25)])
@@ -421,7 +461,8 @@ def hpbd_event():
                      "Gather around the bedroom: Set up a cozy space where we can sit together"
                      "with enough room for the photo album and art supplies.",
                      "Reflect on memories: Take turns sharing stories and memories associated with each photo you've "
-                     "collected. Discuss the emotions and experiences tied to those moments, fostering a sense of "
+                     "collected.",
+                     "Discuss the emotions and experiences tied to those moments, fostering a sense of "
                      "connection and nostalgia.",
                      "Can't believe I gonna say this but, remember to take pictures!!",
                      "If you can't remember all of the steps above, I've hand written that out, open my diary and "
