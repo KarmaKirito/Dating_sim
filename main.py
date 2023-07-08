@@ -29,24 +29,36 @@ Elara_stroke_bunny = pygame.image.load('Dating_sim_pic/Elara_bunny.jpg')
 Elara_admired = pygame.image.load('Dating_sim_pic/Elara_admired.jpg')
 Elara_ask = pygame.image.load('Dating_sim_pic/Elara_ask.jpg')
 Elara_end_chap1 = pygame.image.load('Dating_sim_pic/Elara_embark_adventure.jpg')
-images = [play_bg1, squirrel_bg, paused_squirrel_bg, paused_squirrel_bg2, running_squirrel, enchanted_cave, persistent_squirrel,
-          Elara, Elara_playing_with_animals, Elara_suprised, Squirrel_point, Elara_explain,]
-pygame.mixer.music.load('Otjanbird-Pt.-II.mp3')
+Elara_end_chap1_2 = pygame.image.load('Dating_sim_pic/Elara_embark_adventure_2.jpg')
+images = [play_bg1, play_bg1, squirrel_bg, paused_squirrel_bg, paused_squirrel_bg2, running_squirrel, running_squirrel,
+          persistent_squirrel, enchanted_cave, Elara, Elara_playing_with_animals, Elara_suprised, Elara_suprised,
+          Squirrel_point, Elara_explain, Elara_with_animals, Elara_stroke_bunny, Elara_admired, Elara_ask,
+          Elara_end_chap1, Elara_end_chap1_2]
+pygame.mixer.music.load('Sunflowers.mp3')
 pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(1)
+pygame.mixer.music.set_volume(0)
 user_name = ''
-messages = [' ']
+messages_beginning = [' ']
+messages_ask_ruins = [' ']
+messages_ask_waterfall = [' ']
+chose_optionsA1 = [False, False]
+chose_optionsA2 = [False, False]
+all_message = [messages_beginning, messages_ask_waterfall, messages_ask_ruins]
+current_message = messages_beginning
 active_x = 0
-message = messages[active_x]
 counter = 0
 speed = 2
+chap1_end = False
+chap2_start = False
+chap2_end = False
+has_chosen = False
 for button in buttons_menu:
     button.set_alpha(200)
 
 
 def check_date():
     current_date = datetime.date.today()
-    target_date = datetime.date(2023, 6, 29)
+    target_date = datetime.date(2023, 7, 3)
 
     if current_date == target_date:
         return True
@@ -128,8 +140,8 @@ def get_font(size):
     return pygame.font.Font('font.ttf', size)
 
 
-def setting():
-    global buttons_menu
+def Music():
+    global buttons_menu, chap1_end
     Back = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
     font = get_font(30)
     font2 = get_font(40)
@@ -139,28 +151,28 @@ def setting():
     MUSIC_1 = Button(image=None, text_input='Renai circulation', font=font2, pos=(540, MUSIC_1_X),
                      base_color='Gold',
                      hovering_color=(255, 255, 255))
-    MUSIC_2 = Button(image=None, text_input='ChinaX', font=font2, pos=(520, MUSIC_1_X+150), base_color='Gold',
+    MUSIC_2 = Button(image=None, text_input='ChinaX', font=font2, pos=(520, MUSIC_1_X + 150), base_color='Gold',
                      hovering_color=(255, 255, 255))
-    MUSIC_3 = Button(image=None, text_input='base', font=font2, pos=(520, MUSIC_1_X+300), base_color='Gold',
+    MUSIC_3 = Button(image=None, text_input='base', font=font2, pos=(520, MUSIC_1_X + 300), base_color='Gold',
                      hovering_color=(255, 255, 255))
-    MUSIC_STOP = Button(image=None, text_input='Mute', font=font2, pos=(520, MUSIC_1_X+450), base_color='Gold',
+    MUSIC_STOP = Button(image=None, text_input='Mute', font=font2, pos=(520, MUSIC_1_X + 450), base_color='Gold',
                         hovering_color=(255, 255, 255))
     while True:
         setting_mouse_pos = pygame.mouse.get_pos()
         screen.fill((100, 100, 100))
-        list = [Back, MUSIC_1, MUSIC_2, MUSIC_3, MUSIC_STOP, volume_down_button, volume_up_button]
+        list_button = [Back, MUSIC_1, MUSIC_2, MUSIC_3, MUSIC_STOP, volume_down_button, volume_up_button]
         create_button_bg(520, 100, 750, 75, (247, 191, 121))
         create_button_bg(520, 250, 300, 75, (247, 191, 121))
         create_button_bg(520, 400, 300, 75, (247, 191, 121))
         create_button_bg(520, 550, 300, 75, (247, 191, 121))
-        change_update(setting_mouse_pos, list)
+        change_update(setting_mouse_pos, list_button)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Back.checkforInput(setting_mouse_pos):
-                    Menu()
+                    setting()
                 if MUSIC_1.checkforInput(setting_mouse_pos):
                     pygame.mixer.music.stop()
                     pygame.mixer.music.load('Renai Circulation - Sengoku Nadeko.mp3')
@@ -187,29 +199,103 @@ def setting():
                         pygame.mixer.music.set_volume(0)
                 if MUSIC_STOP.checkforInput(setting_mouse_pos):
                     pygame.mixer.music.set_volume(0)
-
+        if chap1_end:
+            print("ended")
         pygame.display.update()
         pygame.display.flip()
 
 
+def Status():
+    global chap1_end
+    font = get_font(20)
+    back_button = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
+    unfinished_color = (0, 0, 255)
+    finished_color = (0, 255, 0)
+    list_button = [back_button]
+    color = unfinished_color
+    while True:
+        screen.fill((100, 100, 100))
+        status_mouse_pos = pygame.mouse.get_pos()
+        chap_1 = font.render('Chapter 1', True, color)
+        chap_2 = font.render('Chapter 2', True, unfinished_color)
+        if chap1_end:
+            color = finished_color
+        create_button_bg(525, 125, 300, 100, (255, 0, 0))
+        create_button_bg(525, 325, 300, 100, (255, 0, 0))
+        screen.blit(chap_1, (435, 115))
+        screen.blit(chap_2, (435, 315))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if back_button.checkforInput(status_mouse_pos):
+                    setting()
+        change_update(status_mouse_pos, list_button)
+        pygame.display.flip()
+        pygame.display.update()
+
+
+def setting():
+    font = get_font(45)
+    back_button = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
+    Music_button = Button(None, 'Music', (RES[0] / 2, 115), font, (0, 0, 0), (255, 255, 255))
+    Chaps_button = Button(None, 'Chapters', (RES[0] / 2, 315), font, (0, 0, 0), (255, 255, 255))
+    list_button = [Music_button, Chaps_button, back_button]
+    while True:
+        screen.fill((100, 100, 100))
+        setting_mouse_pos = pygame.mouse.get_pos()
+        create_button_bg(525, 125, 450, 100, (255, 0, 0))
+        create_button_bg(525, 325, 500, 100, (255, 0, 0))
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if Music_button.checkforInput(setting_mouse_pos):
+                    Music()
+                if Chaps_button.checkforInput(setting_mouse_pos):
+                    Status()
+                if back_button.checkforInput(setting_mouse_pos):
+                    Menu()
+        change_update(setting_mouse_pos, list_button)
+        pygame.display.flip()
+        pygame.display.update()
+
+
 def play():
-    global buttons_menu, messages, active_x, speed, counter, message, user_name
+    global buttons_menu, active_x, speed, counter, user_name, chap1_end, chap2_start, chap2_end, has_chosen, \
+        current_message, all_message, chose_optionsA1
     font = get_font(20)
     done = False
     paused = False
     game_quit = Button(None, 'Quit', (525, 340), get_font(30), (252, 122, 86), (252, 186, 86))
     speech_frame = pygame.transform.scale(buttons_menu[0], (924, 200))
-    speech_frame = Button(speech_frame, '', (RES[0] / 2, 600), font, (247, 236, 136), (247, 236, 136))
-    speech_frame_border = pygame.Surface((940, 216), pygame.SRCALPHA)
+    sf_x, sf_y = RES[0] / 2, RES[1] * 0.81
+    speech_frame = Button(speech_frame, '', (sf_x, sf_y), font, (247, 236, 136), (247, 236, 136))
+    speech_frame_border = pygame.Surface((RES[0] - 84, 216), pygame.SRCALPHA)
     speech_frame_border.fill((255, 255, 255))
     speech_frame_border_rect = speech_frame_border.get_rect(center=(RES[0] / 2, 600))
+    option1 = Button(None, 'Explore the enchanted waterfall', (375, 350), font, (0, 0, 0), (255, 255, 255))
+    option2 = Button(None, 'Ask about ruins', (225, 450), font, (0, 0, 0), (255, 255, 255))
+    list_button = [option1, option2]
     arrow_surface = pygame.Surface((50, 50), pygame.SRCALPHA)
     arrow_dir = 1
     arrow_speed = 1
     arrow_pos_x = 875
     transition_time = 120  # Number of frames for the transition
     transition_counter = 0
-    playing_bg1 = play_bg1
+    if not has_chosen:
+        current_message = messages_beginning
+    elif chose_optionsA1[0]:
+        current_message = messages_ask_waterfall
+    elif chose_optionsA1[1]:
+        current_message = messages_ask_ruins
+    if active_x == 0:
+        playing_bg1 = play_bg1
+    else:
+        playing_bg1 = images[active_x]
+    message = current_message[active_x]
     while True:
         clock.tick(FPS)
         mouse_pos = pygame.mouse.get_pos()
@@ -249,18 +335,32 @@ def play():
                 counter += 1
             elif counter >= speed * len(message):
                 done = True
-            words = messages[active_x][0:counter // speed].split(' ')
+            words = current_message[active_x][0:counter // speed].split(' ')
             make_lines_for_message(words, font)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
+                    if option1.checkforInput(play_mouse_pos):
+                        active_x = 0
+                        counter = 0
+                        chose_optionsA1[0] = True
+                        has_chosen = True
+                        done = False
+                    if option2.checkforInput(play_mouse_pos):
+                        active_x = 0
+                        counter = 0
+                        chose_optionsA1[1] = True
+                        has_chosen = True
+                        done = False
                     if speech_frame.checkforInput(play_mouse_pos):
-                        if done and active_x < len(messages) - 1:
+                        if done and active_x < len(current_message) - 1:
                             active_x += 1
                             transition_counter = transition_time
-                            if active_x == 2:
+                            if active_x == 1:
+                                playing_bg1 = play_bg1
+                            elif active_x == 2:
                                 playing_bg1 = squirrel_bg
                             elif active_x == 3:
                                 playing_bg1 = paused_squirrel_bg
@@ -292,16 +392,28 @@ def play():
                                 playing_bg1 = Elara_ask
                             elif active_x == 19:
                                 playing_bg1 = Elara_end_chap1
+                            elif active_x == 20:
+                                playing_bg1 = Elara_end_chap1_2
+                                chap1_end = True
                             else:
                                 playing_bg1 = play_bg1
                             done = False
-                            message = messages[active_x]
+                            message = current_message[active_x]
                             counter = 0
                         else:
                             counter = speed * len(message)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         paused = not paused
+            if chap1_end and done and not has_chosen:
+                create_button_bg(375, 350, 655, 60, (250, 197, 82))
+                create_button_bg(250, 450, 400, 60, (250, 197, 82))
+                change_update(play_mouse_pos, list_button)
+                chap2_start = True
+            if chose_optionsA1[1]:
+                current_message = messages_ask_ruins
+            if chose_optionsA1[0]:
+                current_message = messages_ask_waterfall
             arrow_rect = arrow_surface.get_rect(center=(arrow_pos_x, 650))
             if done:
                 pygame.draw.polygon(arrow_surface, (100, 100, 100), [(0, 0), (0, 50), (50, 25)])
@@ -341,7 +453,7 @@ def Menu():
 
 
 def get_name():
-    global user_name, messages, message
+    global user_name, message, messages_ask_ruins, messages_ask_waterfall, messages_beginning
     surface_width = 300
     input_rect_alt = Button(None, '          ', (RES[0] / 2, 300), get_font(30), (0, 0, 0), (0, 0, 0))
     list = [input_rect_alt]
@@ -402,46 +514,83 @@ def get_name():
         pygame.display.update()
 
         if not active and len(user_name) > 0:
-            messages = ['{}: Lost in the forest Ah, where am I? This forest seems endless. I hope I can find my way '
-                        'out soon.'.format(user_name),
-                        'Suddenly, a lively squirrel appears, chattering and scampering around.',
-                        '{}: Hey there, little guy. You seem to know your way around here. Mind showing me the way '
-                        'out of this forest?'.format(user_name),
-                        'Squirrel pauses, looks back at MC, and then starts dashing deeper into the forest.',
-                        '{}: Huh? Wait up! Maybe that squirrel knows something. I should follow it and see where it '
-                        'leads me.'.format(user_name),
-                        '{} follows the squirrel, maneuvering through the dense foliage and underbrush.'.format(
-                            user_name),
-                        "{}: This squirrel is quite persistent. It must be taking me somewhere important.".format(
-                            user_name),
-                        "The squirrel leads MC to a hidden grove within the forest, where sunlight filters through "
-                        "the canopy, illuminating a beautiful meadow.",
-                        "{}: Wow, I never expected to find such a serene place in this forest. It's breathtaking.".format(
-                            user_name),
-                        "Suddenly, {} notices Elara playfully chasing after woodland creatures in the meadow.".format(
-                            user_name),
-                        "{}: Is that... Elara? She seems to be having a blast with those animals. Her laughter is "
-                        "infectious.".format(user_name),
-                        "{}'s curiosity gets the better of them, and they step forward, accidentally "
-                        "catching Elara's attention.".format(user_name),
-                        "Elara: (Surprised and slightly off balance) Oh! Well, hello there! "
-                        "You caught me off guard. I didn't expect to see anyone else here.",
-                        "{}: Hi! Sorry for interrupting your playful chase. I was actually following this squirrel, "
-                        "and it led me to this magical meadow.".format(user_name),
-                        "Elara: (Grinning mischievously) Ah, that little rascal! They seem to have a knack for guiding "
-                        "lost wanderers. I'm glad it brought you here.",
-                        "{}: It's incredible to witness your interaction with these creatures. You have a special "
-                        "bond with them, don't you?".format(user_name),
-                        "Elara: (Gently stroking a nearby rabbit) Yes, I do. I can communicate with animals and "
-                        "understand their needs. It's one of the many wonders of this magical realm.",
-                        "{}: That's amazing! I've always admired people who can connect with nature. I'm fascinated "
-                        "by this enchanting world.".format(user_name),
-                        "Elara: Well, since you've stumbled upon this meadow, how about I become your guide? I can "
-                        "help you navigate through this realm and uncover its secrets.",
-                        "{}: That sounds incredible! I'd be honored to have you as my guide, Elara. Let's embark on "
-                        "this adventure together.".format(user_name)]
+            messages_beginning = [
+                '{}: Lost in the forest Ah, where am I? This forest seems endless. I hope I can find my way out soon.'.format(
+                    user_name),
+                'Suddenly, a lively squirrel appears, chattering and scampering around.',
+                '{}: Hey there, little guy. You seem to know your way around here. Mind showing me the way '
+                'out of this forest?'.format(user_name),
+                'Squirrel pauses, looks back at {}, and then starts dashing deeper into the forest.'.format(user_name),
+                '{}: Huh? Wait up! Maybe that squirrel knows something. I should follow it and see where it '
+                'leads me.'.format(user_name),
+                '{} follows the squirrel, maneuvering through the dense foliage and underbrush.'.format(user_name),
+                "{}: This squirrel is quite persistent. It must be taking me somewhere important.".format(user_name),
+                "The squirrel leads {} to a hidden grove within the forest, where sunlight filters through "
+                "the canopy, illuminating a beautiful meadow.".format(user_name),
+                "{}: Wow, I never expected to find such a serene place in this forest. It's breathtaking.".format(user_name),
+                "Suddenly, {} notices Elara playfully chasing after woodland creatures in the meadow.".format(user_name),
+                "{}: Is that... Elara? She seems to be having a blast with those animals. Her laughter is "
+                "infectious.".format(user_name),
+                "{}'s curiosity gets the better of them, and they step forward, accidentally "
+                "catching Elara's attention.".format(user_name),
+                "Elara: (Surprised and slightly off balance) Oh! Well, hello there! "
+                "You caught me off guard. I didn't expect to see anyone else here.",
+                "{}: Hi! Sorry for interrupting your playful chase, I was actually following this squirrel,"
+                "and it led me to this magical meadow. My name is {}, you are Elara right?".format(user_name, user_name),
+                "Your name has been whispered among the forest's whispers. I heard tales of your bond with "
+                "animals and the wonders you bring to this realm.",
+                "Elara: (Grinning mischievously) Ah, yes I'm Elara, (turns to look at the squirrel) that "
+                "little rascal! They seem to have a knack for guiding lost wanderers. I'm glad it brought you "
+                "here.",
+                "{}: It's incredible to witness your interaction with these creatures. You have a special "
+                "bond with them, don't you?".format(user_name),
+                "Elara: (Gently stroking a nearby rabbit) Yes, I do. I can communicate with animals and "
+                "understand their needs. It's one of the many wonders of this magical realm.",
+                "{}: That's amazing! I've always admired people who can connect with nature. I'm fascinated "
+                "by this enchanting world.".format(user_name),
+                "Elara: Well, since you've stumbled upon this meadow, how about I become your guide? I can "
+                "help you navigate through this realm and uncover its secrets.",
+                "{}: That sounds incredible! I'd be honored to have you as my guide, Elara. Let's embark on "
+                "this adventure together.".format(user_name)]
+            messages_ask_ruins = [
+                "{}: (Curious) This forest seems like it's filled with mysteries. I can't help but wonder, are there "
+                "any ancient ruins hidden within its depths?".format(user_name),
+                "Elara: Ah, the ancient ruins... They hold a great mystery and history within these enchanted woods. ",
+                "Elara: Many adventurers have tried to uncover their secrets, but few have succeeded.",
+                "Elara: Legend has it that deep within the ruins lies a hidden artifact of immense power. It is said "
+                "to grant unimaginable abilities to those who possess it.",
+                "Elara: However, accessing the ruins is not an easy task. The path is treacherous and filled with "
+                "dangerous obstacles.",
+                "Elara: Only the brave and determined can hope to find their way through.",
+                "Elara: If you truly seek the secrets of the ruins, we can embark on a perilous journey together.",
+                "Elara: But be warned, the challenges we'll face are not to be taken lightly.",
+                "{}: (Contemplating) The ruins sound intriguing, but I must be cautious. I need more "
+                "information before deciding.".format(user_name),
+                "Elara: (Nods) Understandable. Take your time to weigh your options. Should you choose to venture "
+                "into the ruins, know that I'll be by your side, guiding and protecting you."
+            ]
+            messages_ask_waterfall = [
+                "{}: The waterfall here sounds captivating. I'm drawn to its beauty and the promise of serenity. "
+                "But before we embark on this journey, may I ask you a question?".format(user_name),
+                "Elara: Yes? (looks with curiosity)",
+                "{}: Are there any dangers we should be aware of when exploring the waterfall? I want to ensure our "
+                "safety during this adventure.",
+                "Elara: (Thoughtful) Ah, a wise question indeed. While the waterfall is a place of enchantment and "
+                "tranquility, there are natural elements we should consider.",
+                "Elara:  The terrain around the waterfall can be slippery, so we must exercise caution. The currents "
+                "can be strong, especially after heavy rainfall.",
+                "Elara: It's important to stay vigilant and be mindful of our surroundings.",
+                "Elara: Additionally, the waterfall attracts various wildlife, including some that may be "
+                "territorial. We should respect their habitat and maintain a safe distance.",
+                "Elara: But fear not, I have extensive knowledge of the area, and together we can navigate the "
+                "waterfall with care and appreciation for its beauty.",
+                "{}: (Grateful) I appreciate your guidance and concern for our safety. With your expertise, "
+                "I feel confident in exploring the waterfall.".format(user_name),
+                "Elara: Elara: If you wish to explore the waterfall, I'll gladly accompany you. Together, "
+                "we can immerse ourselves in its enchanting presence and uncover its secrets."
+            ]
 
-            message = messages[active_x]
+            message = messages_beginning[active_x]
             Menu()
 
 
@@ -458,17 +607,18 @@ def hpbd_event():
                      "Let's create a memorable photo album together that reflects our journey and reminds us of the "
                      "love and joy we share.",
                      "Follow the steps below to complete the mission and strengthen our bond!",
-                     "Gather around the bedroom: Set up a cozy space where we can sit together"
-                     "with enough room for the photo album and art supplies.",
+                     "Gather around the bedroom: Set up a cozy space where we can sit together "
+                     "with enough room for the photo albums.",
                      "Reflect on memories: Take turns sharing stories and memories associated with each photo you've "
                      "collected.",
-                     "Discuss the emotions and experiences tied to those moments, fostering a sense of "
-                     "connection and nostalgia.",
-                     "Can't believe I gonna say this but, remember to take pictures!!",
+                     "Discuss the emotions and experiences tied to those moments.",
                      "If you can't remember all of the steps above, I've hand written that out, open my diary and "
                      "take the paper that's currently in it out. The steps are in there. Good luck!",
-                     "Note: For mah big brother, STARDEW VALLEY!!!! I just realized it's an isometric game O_o",
-                     "Last note: If Daddy can't attend this, mommy do it =))"]
+                     "Note1: For mah big brother, STARDEW VALLEY!!!! I just realized it's an isometric game O_o",
+                     "Note2: If Daddy can't attend this, mommy do it =))",
+                     "Last note (for the day daddy see this): What do you think the thing I struggled the most while "
+                     "making this game is? And why?",
+                     "Hint: It was thought to be obvious, but I only realized how hard it is when I tried to do it."]
     Continue_game = Button(None, 'Head to the game', (RES[0] / 2, RES[1] / 2), get_font(45), (0, 0, 0), (194, 245, 86))
     arrow_surface = pygame.Surface((50, 50), pygame.SRCALPHA)
     arrow_dir = 1
