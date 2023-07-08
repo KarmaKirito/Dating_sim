@@ -36,7 +36,7 @@ images = [play_bg1, play_bg1, squirrel_bg, paused_squirrel_bg, paused_squirrel_b
           Elara_end_chap1, Elara_end_chap1_2]
 pygame.mixer.music.load('Sunflowers.mp3')
 pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(0)
+pygame.mixer.music.set_volume(1)
 user_name = ''
 messages_beginning = [' ']
 messages_ask_ruins = [' ']
