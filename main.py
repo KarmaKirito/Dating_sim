@@ -1,6 +1,7 @@
 import datetime
 import pygame
 import sys
+from Button import Button
 
 pygame.init()
 RES = (1024, 740)
@@ -30,28 +31,35 @@ Elara_admired = pygame.image.load('Dating_sim_pic/Elara_admired.jpg')
 Elara_ask = pygame.image.load('Dating_sim_pic/Elara_ask.jpg')
 Elara_end_chap1 = pygame.image.load('Dating_sim_pic/Elara_embark_adventure.jpg')
 Elara_end_chap1_2 = pygame.image.load('Dating_sim_pic/Elara_embark_adventure_2.jpg')
-images = [play_bg1, play_bg1, squirrel_bg, paused_squirrel_bg, paused_squirrel_bg2, running_squirrel, running_squirrel,
-          persistent_squirrel, enchanted_cave, Elara, Elara_playing_with_animals, Elara_suprised, Elara_suprised,
-          Squirrel_point, Elara_explain, Elara_with_animals, Elara_stroke_bunny, Elara_admired, Elara_ask,
-          Elara_end_chap1, Elara_end_chap1_2]
+status_bg = pygame.image.load('Dating_sim_pic/status_bg.jpg')
+setting_bg = pygame.image.load('Dating_sim_pic/setting_bg.jpg')
+music_bg = pygame.image.load('Dating_sim_pic/music_bg.jpg')
+Elara_main = pygame.transform.scale(pygame.image.load('Dating_sim_pic/Elara_main.jpg'), (700, 700))
+image_mapping = \
+    {0: play_bg1, 1: play_bg1, 2: squirrel_bg, 3: paused_squirrel_bg, 4: paused_squirrel_bg2, 5: running_squirrel,
+     6: running_squirrel, 7: persistent_squirrel, 8: enchanted_cave, 9: Elara, 10: Elara_playing_with_animals,
+     11: Elara_suprised, 12: Elara_suprised, 13: Squirrel_point, 14: Elara_explain, 15: Elara_with_animals,
+     16: Elara_stroke_bunny, 17: Elara_admired, 18: Elara_ask, 19: Elara_end_chap1, 20: Elara_end_chap1_2}
 pygame.mixer.music.load('Sunflowers.mp3')
 pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(1)
+black = (0, 0, 0)
+white = (255, 255, 255)
+light_cyan = (140, 245, 245)
+light_orange = (250, 197, 82)
 user_name = ''
 messages_beginning = [' ']
 messages_ask_ruins = [' ']
 messages_ask_waterfall = [' ']
 chose_optionsA1 = [False, False]
-chose_optionsA2 = [False, False]
+chose_optionsA2 = [False, False, False]
 all_message = [messages_beginning, messages_ask_waterfall, messages_ask_ruins]
 current_message = messages_beginning
-active_x = 0
+active_x = 19
 counter = 0
 speed = 2
-chap1_end = False
-chap2_start = False
-chap2_end = False
-has_chosen = False
+chap1_end, chap2_end, has_chosenA1, has_chosenA2 = False, False, False, False
+blit_Elara, blit_optionsA2 = False, False
 for button in buttons_menu:
     button.set_alpha(200)
 
@@ -95,45 +103,14 @@ def make_lines_for_message(words, font):
 
     # Draw the lines of text
     for i, line in enumerate(lines):
-        text = font.render(line, True, (255, 255, 255))
+        text = font.render(line, True, white)
         screen.blit(text, (75, 520 + i * 30))
-
-
-class Button:
-    def __init__(self, image, text_input, pos, font, base_color, hovering_color):
-        self.image, self.text_input = image, text_input
-        self.x_cor = pos[0]
-        self.y_cor = pos[1]
-        self.font, self.base_color, self.hovering_color = font, base_color, hovering_color
-        self.text = self.font.render(self.text_input, True, (255, 255, 255))
-        if self.image is None:
-            self.image = self.text
-        self.rect = self.image.get_rect(center=(self.x_cor, self.y_cor))
-        self.text_rect = self.text.get_rect(center=(self.x_cor, self.y_cor))
-
-    def update(self):
-        if self.image is not None:
-            screen.blit(self.image, self.rect)
-        screen.blit(self.text, self.text_rect)
-
-    def checkforInput(self, position):
-        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top,
-                                                                                          self.rect.bottom):
-            return True
-        return False
-
-    def changeColor(self, position):
-        if position[0] in range(self.rect.left, self.rect.right) and position[1] in range(self.rect.top,
-                                                                                          self.rect.bottom):
-            self.text = self.font.render(self.text_input, True, self.hovering_color)
-        else:
-            self.text = self.font.render(self.text_input, True, self.base_color)
 
 
 def change_update(position, list):
     for buttons in list:
         buttons.changeColor(position)
-        buttons.update()
+        buttons.update(screen)
 
 
 def get_font(size):
@@ -142,29 +119,30 @@ def get_font(size):
 
 def Music():
     global buttons_menu, chap1_end
-    Back = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
+    Back = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), black, white)
     font = get_font(30)
     font2 = get_font(40)
-    volume_up_button = Button(None, '+', (480, 625), font, (255, 255, 255), (0, 0, 0))
-    volume_down_button = Button(None, '-', (520 + 40, 625), font, (255, 255, 255), (0, 0, 0))
+    volume_up_button = Button(None, '+', (480, 625), font, white, black)
+    volume_down_button = Button(None, '-', (520 + 40, 625), font, white, black)
     MUSIC_1_X = 100
-    MUSIC_1 = Button(image=None, text_input='Renai circulation', font=font2, pos=(540, MUSIC_1_X),
-                     base_color='Gold',
-                     hovering_color=(255, 255, 255))
+    MUSIC_1 = Button(image=None, text_input='Renai circulation', font=font2, pos=(540, MUSIC_1_X), base_color='Gold',
+                     hovering_color=white)
     MUSIC_2 = Button(image=None, text_input='ChinaX', font=font2, pos=(520, MUSIC_1_X + 150), base_color='Gold',
-                     hovering_color=(255, 255, 255))
+                     hovering_color=white)
     MUSIC_3 = Button(image=None, text_input='base', font=font2, pos=(520, MUSIC_1_X + 300), base_color='Gold',
-                     hovering_color=(255, 255, 255))
+                     hovering_color=white)
     MUSIC_STOP = Button(image=None, text_input='Mute', font=font2, pos=(520, MUSIC_1_X + 450), base_color='Gold',
-                        hovering_color=(255, 255, 255))
+                        hovering_color=white)
+    button_bg_color = (247, 191, 121)
     while True:
         setting_mouse_pos = pygame.mouse.get_pos()
-        screen.fill((100, 100, 100))
+        screen.blit(music_bg, (0, -100))
         list_button = [Back, MUSIC_1, MUSIC_2, MUSIC_3, MUSIC_STOP, volume_down_button, volume_up_button]
-        create_button_bg(520, 100, 750, 75, (247, 191, 121))
-        create_button_bg(520, 250, 300, 75, (247, 191, 121))
-        create_button_bg(520, 400, 300, 75, (247, 191, 121))
-        create_button_bg(520, 550, 300, 75, (247, 191, 121))
+        music_button = [MUSIC_1, MUSIC_2, MUSIC_3]
+        create_button_bg(520, 100, 750, 75, button_bg_color)
+        create_button_bg(520, 250, 300, 75, button_bg_color)
+        create_button_bg(520, 400, 300, 75, button_bg_color)
+        create_button_bg(520, 550, 300, 75, button_bg_color)
         change_update(setting_mouse_pos, list_button)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -173,19 +151,16 @@ def Music():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if Back.checkforInput(setting_mouse_pos):
                     setting()
-                if MUSIC_1.checkforInput(setting_mouse_pos):
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load('Renai Circulation - Sengoku Nadeko.mp3')
-                    pygame.mixer.music.play(-1)
-                if MUSIC_2.checkforInput(setting_mouse_pos):
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load('ANIME_GAME_PICS/ChinaX-Nightcore.mp3')
-                    pygame.mixer.music.play(-1)
-                if MUSIC_3.checkforInput(setting_mouse_pos):
-                    pygame.mixer.music.stop()
-                    pygame.mixer.music.load('Otjanbird-Pt.-II.mp3')
-                    pygame.mixer.music.play(-1)
-                if volume_up_button.checkforInput(setting_mouse_pos):
+                for buttons in music_button:
+                    if buttons.checkforInput(setting_mouse_pos):
+                        pygame.mixer.music.stop()
+                        if buttons is MUSIC_1:
+                            pygame.mixer.music.load('Renai Circulation - Sengoku Nadeko.mp3')
+                        elif buttons is MUSIC_2:
+                            pygame.mixer.music.load('ANIME_GAME_PICS/ChinaX-Nightcore.mp3')
+                        elif buttons is MUSIC_3:
+                            pygame.mixer.music.load('Otjanbird-Pt.-II.mp3')
+                        pygame.mixer.music.play(-1)
                     current_volume = pygame.mixer.music.get_volume()
                     if current_volume <= 0.9:
                         pygame.mixer.music.set_volume(current_volume + 0.1)
@@ -199,8 +174,6 @@ def Music():
                         pygame.mixer.music.set_volume(0)
                 if MUSIC_STOP.checkforInput(setting_mouse_pos):
                     pygame.mixer.music.set_volume(0)
-        if chap1_end:
-            print("ended")
         pygame.display.update()
         pygame.display.flip()
 
@@ -208,13 +181,14 @@ def Music():
 def Status():
     global chap1_end
     font = get_font(20)
-    back_button = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
+    back_button = Button(buttons_menu[1], 'Back', (RES[0] / 2, RES[1]*0.945), get_font(30), (0, 0, 0), (255, 255, 255))
     unfinished_color = (0, 0, 255)
     finished_color = (0, 255, 0)
     list_button = [back_button]
     color = unfinished_color
     while True:
         screen.fill((100, 100, 100))
+        screen.blit(status_bg, (0, 0))
         status_mouse_pos = pygame.mouse.get_pos()
         chap_1 = font.render('Chapter 1', True, color)
         chap_2 = font.render('Chapter 2', True, unfinished_color)
@@ -238,15 +212,16 @@ def Status():
 
 def setting():
     font = get_font(45)
-    back_button = Button(buttons_menu[1], 'Back', (RES[0] / 2, 700), get_font(30), (0, 0, 0), (255, 255, 255))
-    Music_button = Button(None, 'Music', (RES[0] / 2, 115), font, (0, 0, 0), (255, 255, 255))
-    Chaps_button = Button(None, 'Chapters', (RES[0] / 2, 315), font, (0, 0, 0), (255, 255, 255))
+    back_button = Button(buttons_menu[1], 'Back', (RES[0] / 2, RES[1]*0.945), get_font(30), (0, 0, 0), (255, 255, 255))
+    Music_button = Button(None, 'Music', (RES[0] / 2, RES[1]*0.155), font, (0, 0, 0), (255, 255, 255))
+    Chaps_button = Button(None, 'Chapters', (RES[0] / 2, RES[1]*0.425), font, (0, 0, 0), (255, 255, 255))
     list_button = [Music_button, Chaps_button, back_button]
     while True:
         screen.fill((100, 100, 100))
+        screen.blit(setting_bg, (0, 0))
         setting_mouse_pos = pygame.mouse.get_pos()
-        create_button_bg(525, 125, 450, 100, (255, 0, 0))
-        create_button_bg(525, 325, 500, 100, (255, 0, 0))
+        create_button_bg(RES[0]/2, RES[1]*0.155, 450, 100, light_cyan)
+        create_button_bg(RES[0]/2, RES[1]*0.425, 500, 100, light_cyan)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -264,37 +239,41 @@ def setting():
 
 
 def play():
-    global buttons_menu, active_x, speed, counter, user_name, chap1_end, chap2_start, chap2_end, has_chosen, \
-        current_message, all_message, chose_optionsA1
+    global buttons_menu, active_x, speed, counter, chap1_end, chap2_end, has_chosenA1, \
+        current_message, all_message, chose_optionsA1, blit_Elara, blit_optionsA2, has_chosenA2
     font = get_font(20)
     done = False
     paused = False
-    game_quit = Button(None, 'Quit', (525, 340), get_font(30), (252, 122, 86), (252, 186, 86))
-    speech_frame = pygame.transform.scale(buttons_menu[0], (924, 200))
+    game_quit = Button(None, 'Quit', (RES[0]/2, RES[1]*0.46), get_font(30), (252, 122, 86), (252, 186, 86))
+    speech_frame = pygame.transform.scale(buttons_menu[0], (RES[0]-100, 200))
     sf_x, sf_y = RES[0] / 2, RES[1] * 0.81
     speech_frame = Button(speech_frame, '', (sf_x, sf_y), font, (247, 236, 136), (247, 236, 136))
     speech_frame_border = pygame.Surface((RES[0] - 84, 216), pygame.SRCALPHA)
     speech_frame_border.fill((255, 255, 255))
     speech_frame_border_rect = speech_frame_border.get_rect(center=(RES[0] / 2, 600))
-    option1 = Button(None, 'Explore the enchanted waterfall', (375, 350), font, (0, 0, 0), (255, 255, 255))
-    option2 = Button(None, 'Ask about ruins', (225, 450), font, (0, 0, 0), (255, 255, 255))
-    list_button = [option1, option2]
+    optionA1a = Button(None, 'Explore the enchanted waterfall', (375, 350), font, (0, 0, 0), (255, 255, 255))
+    optionA1b = Button(None, 'Ask about ruins', (225, 450), font, (0, 0, 0), (255, 255, 255))
+    optionA2a = Button(None, "....", (225, 450), font, (0, 0, 0), (255, 255, 255))
+    optionA2b = Button(None, "Ask about Elara's feelings", (375, 350), font, (0, 0, 0), (255, 255, 255))
+    optionA2c = Button(None, "optionA2c", (375, 250), font, (0, 0, 0), (255, 255, 255))
+    list_button1 = [optionA1a, optionA1b]
+    list_button2 = [optionA2a, optionA2b, optionA2c]
     arrow_surface = pygame.Surface((50, 50), pygame.SRCALPHA)
     arrow_dir = 1
     arrow_speed = 1
     arrow_pos_x = 875
     transition_time = 120  # Number of frames for the transition
     transition_counter = 0
-    if not has_chosen:
+    if not has_chosenA1:
         current_message = messages_beginning
     elif chose_optionsA1[0]:
         current_message = messages_ask_waterfall
     elif chose_optionsA1[1]:
         current_message = messages_ask_ruins
-    if active_x == 0:
-        playing_bg1 = play_bg1
+    if not has_chosenA1:
+        playing_bg1 = image_mapping.get(active_x)
     else:
-        playing_bg1 = images[active_x]
+        playing_bg1 = play_bg1
     message = current_message[active_x]
     while True:
         clock.tick(FPS)
@@ -329,6 +308,8 @@ def play():
             screen.blit(playing_bg1, (0, -100))
             list1 = [speech_frame]
             speech_frame_border.set_alpha(175)
+            if blit_Elara:
+                screen.blit(Elara_main, (50, 60))
             screen.blit(speech_frame_border, speech_frame_border_rect)
             change_update(play_mouse_pos, list1)
             if counter < speed * len(message):
@@ -342,61 +323,42 @@ def play():
                     pygame.quit()
                     sys.exit()
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if option1.checkforInput(play_mouse_pos):
-                        active_x = 0
-                        counter = 0
-                        chose_optionsA1[0] = True
-                        has_chosen = True
-                        done = False
-                    if option2.checkforInput(play_mouse_pos):
-                        active_x = 0
-                        counter = 0
-                        chose_optionsA1[1] = True
-                        has_chosen = True
-                        done = False
+                    for buttons in list_button1:
+                        if buttons.checkforInput(play_mouse_pos):
+                            active_x = 0
+                            counter = 0
+                            if buttons is optionA1a:
+                                chose_optionsA1[0] = True
+                            if buttons is optionA1b:
+                                chose_optionsA1[1] = True
+                            has_chosenA1 = True
+                            done = False
+                    for buttons in list_button2:
+                        if buttons.checkforInput(play_mouse_pos):
+                            active_x = 0
+                            counter = 0
+                            if buttons is optionA2a:
+                                chose_optionsA2[0] = True
+                            if buttons is optionA2b:
+                                chose_optionsA2[1] = True
+                            if buttons is optionA2c:
+                                chose_optionsA2[2] = True
+                            has_chosenA2 = True
+                            done = False
                     if speech_frame.checkforInput(play_mouse_pos):
                         if done and active_x < len(current_message) - 1:
                             active_x += 1
                             transition_counter = transition_time
-                            if active_x == 1:
-                                playing_bg1 = play_bg1
-                            elif active_x == 2:
-                                playing_bg1 = squirrel_bg
-                            elif active_x == 3:
-                                playing_bg1 = paused_squirrel_bg
-                            elif active_x == 4:
-                                playing_bg1 = paused_squirrel_bg2
-                            elif active_x == 5 or active_x == 6:
-                                playing_bg1 = running_squirrel
-                            elif active_x == 7:
-                                playing_bg1 = persistent_squirrel
-                            elif active_x == 8:
-                                playing_bg1 = enchanted_cave
-                            elif active_x == 9:
-                                playing_bg1 = Elara
-                            elif active_x == 10:
-                                playing_bg1 = Elara_playing_with_animals
-                            elif active_x == 11 or active_x == 12:
-                                playing_bg1 = Elara_suprised
-                            elif active_x == 13:
-                                playing_bg1 = Squirrel_point
-                            elif active_x == 14:
-                                playing_bg1 = Elara_explain
-                            elif active_x == 15:
-                                playing_bg1 = Elara_with_animals
-                            elif active_x == 16:
-                                playing_bg1 = Elara_stroke_bunny
-                            elif active_x == 17:
-                                playing_bg1 = Elara_admired
-                            elif active_x == 18:
-                                playing_bg1 = Elara_ask
-                            elif active_x == 19:
-                                playing_bg1 = Elara_end_chap1
-                            elif active_x == 20:
-                                playing_bg1 = Elara_end_chap1_2
-                                chap1_end = True
+                            if not has_chosenA1:
+                                playing_bg1 = image_mapping.get(active_x, play_bg1)
+                                if active_x == 20:
+                                    chap1_end = True
                             else:
                                 playing_bg1 = play_bg1
+                            if chose_optionsA1[0] or chose_optionsA1[1]:
+                                blit_Elara = True
+                                if active_x == len(current_message) - 1:
+                                    blit_optionsA2 = True
                             done = False
                             message = current_message[active_x]
                             counter = 0
@@ -405,15 +367,19 @@ def play():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         paused = not paused
-            if chap1_end and done and not has_chosen:
-                create_button_bg(375, 350, 655, 60, (250, 197, 82))
-                create_button_bg(250, 450, 400, 60, (250, 197, 82))
-                change_update(play_mouse_pos, list_button)
-                chap2_start = True
+            if chap1_end and done and not has_chosenA1:
+                create_button_bg(375, 350, 655, 60, light_orange)
+                create_button_bg(250, 450, 400, 60, light_orange)
+                change_update(play_mouse_pos, list_button1)
             if chose_optionsA1[1]:
                 current_message = messages_ask_ruins
             if chose_optionsA1[0]:
                 current_message = messages_ask_waterfall
+            if blit_optionsA2 and done and not has_chosenA2:
+                create_button_bg(375, 350, 655, 60, light_orange)
+                create_button_bg(250, 450, 400, 60, light_orange)
+                change_update(play_mouse_pos, list_button2)
+
             arrow_rect = arrow_surface.get_rect(center=(arrow_pos_x, 650))
             if done:
                 pygame.draw.polygon(arrow_surface, (100, 100, 100), [(0, 0), (0, 50), (50, 25)])
@@ -426,7 +392,7 @@ def play():
 
 
 def Menu():
-    global buttons_menu, user_name
+    global buttons_menu
     font = get_font(45)
     Settings = Button(None, 'Settings', (RES[0] / 2, 600), font, (255, 255, 255),
                       (245, 137, 221))
@@ -453,10 +419,10 @@ def Menu():
 
 
 def get_name():
-    global user_name, message, messages_ask_ruins, messages_ask_waterfall, messages_beginning
+    global user_name, messages_ask_ruins, messages_ask_waterfall, messages_beginning
     surface_width = 300
     input_rect_alt = Button(None, '          ', (RES[0] / 2, 300), get_font(30), (0, 0, 0), (0, 0, 0))
-    list = [input_rect_alt]
+    list_button = [input_rect_alt]
     active = False
     font = get_font(30)
     name_bg = pygame.image.load('Dating_sim_pic/name_bg.jpg').convert_alpha()
@@ -507,12 +473,10 @@ def get_name():
         arrow_rect = arrow_surface.get_rect(midtop=(input_rect.x + input_rect.width / 2, arrow_pos_y))
         screen.blit(arrow_surface, arrow_rect)
         screen.blit(arrow_text, (arrow_rect.x - 110, arrow_rect.y + 50))
-
-        change_update(mouse_pos, list)
+        change_update(mouse_pos, list_button)
         clock.tick(FPS)
         pygame.display.flip()
         pygame.display.update()
-
         if not active and len(user_name) > 0:
             messages_beginning = [
                 '{}: Lost in the forest Ah, where am I? This forest seems endless. I hope I can find my way out soon.'.format(
@@ -574,7 +538,7 @@ def get_name():
                 "But before we embark on this journey, may I ask you a question?".format(user_name),
                 "Elara: Yes? (looks with curiosity)",
                 "{}: Are there any dangers we should be aware of when exploring the waterfall? I want to ensure our "
-                "safety during this adventure.",
+                "safety during this adventure.".format(user_name),
                 "Elara: (Thoughtful) Ah, a wise question indeed. While the waterfall is a place of enchantment and "
                 "tranquility, there are natural elements we should consider.",
                 "Elara:  The terrain around the waterfall can be slippery, so we must exercise caution. The currents "
@@ -586,7 +550,7 @@ def get_name():
                 "waterfall with care and appreciation for its beauty.",
                 "{}: (Grateful) I appreciate your guidance and concern for our safety. With your expertise, "
                 "I feel confident in exploring the waterfall.".format(user_name),
-                "Elara: Elara: If you wish to explore the waterfall, I'll gladly accompany you. Together, "
+                "Elara: If you wish to explore the waterfall, I'll gladly accompany you. Together, "
                 "we can immerse ourselves in its enchanting presence and uncover its secrets."
             ]
 
