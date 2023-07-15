@@ -35,6 +35,7 @@ status_bg = pygame.image.load('Dating_sim_pic/status_bg.jpg')
 setting_bg = pygame.image.load('Dating_sim_pic/setting_bg.jpg')
 music_bg = pygame.image.load('Dating_sim_pic/music_bg.jpg')
 Elara_main = pygame.transform.scale(pygame.image.load('Dating_sim_pic/Elara_main.jpg'), (700, 700))
+Elara_main = pygame.transform.flip(Elara_main, True, False)
 image_mapping = \
     {0: play_bg1, 1: play_bg1, 2: squirrel_bg, 3: paused_squirrel_bg, 4: paused_squirrel_bg2, 5: running_squirrel,
      6: running_squirrel, 7: persistent_squirrel, 8: enchanted_cave, 9: Elara, 10: Elara_playing_with_animals,
@@ -42,7 +43,7 @@ image_mapping = \
      16: Elara_stroke_bunny, 17: Elara_admired, 18: Elara_ask, 19: Elara_end_chap1, 20: Elara_end_chap1_2}
 pygame.mixer.music.load('Sunflowers.mp3')
 pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(1)
+pygame.mixer.music.set_volume(0)
 black = (0, 0, 0)
 white = (255, 255, 255)
 light_cyan = (140, 245, 245)
@@ -51,13 +52,20 @@ user_name = ''
 messages_beginning = [' ']
 messages_ask_ruins = [' ']
 messages_ask_waterfall = [' ']
+messages_stay_silent = [' ']
+messages_ask_Elara_feelings = [' ']
+messages_share_story = [' ']
 chose_optionsA1 = [False, False]
 chose_optionsA2 = [False, False, False]
-all_message = [messages_beginning, messages_ask_waterfall, messages_ask_ruins]
+all_message = [messages_beginning, messages_ask_waterfall, messages_ask_ruins, messages_stay_silent,
+               messages_ask_Elara_feelings, messages_share_story]
 current_message = messages_beginning
+love_scale = 0
 active_x = 19
 counter = 0
 speed = 2
+fixer1 = 0
+fixer2 = 500
 chap1_end, chap2_end, has_chosenA1, has_chosenA2 = False, False, False, False
 blit_Elara, blit_optionsA2 = False, False
 for button in buttons_menu:
@@ -105,6 +113,16 @@ def make_lines_for_message(words, font):
     for i, line in enumerate(lines):
         text = font.render(line, True, white)
         screen.blit(text, (75, 520 + i * 30))
+
+
+def lovometer(scale, x, y):
+    ratio = scale/600
+    love_scaling = pygame.Rect(x, y, 600*ratio, 40)
+    love_border = pygame.Rect(x-5, y-5, 610, 50)
+    pygame.draw.rect(screen, (240, 213, 236), love_border, width=5)
+    pygame.draw.rect(screen, (250, 107, 231), love_scaling)
+
+# Combine the changeColor and the update function into one and make it possible to do multiple buttons at once
 
 
 def change_update(position, list):
@@ -198,6 +216,7 @@ def Status():
         create_button_bg(525, 325, 300, 100, (255, 0, 0))
         screen.blit(chap_1, (435, 115))
         screen.blit(chap_2, (435, 315))
+        lovometer(love_scale, RES[0]/2 - 300, 500)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -239,8 +258,8 @@ def setting():
 
 
 def play():
-    global buttons_menu, active_x, speed, counter, chap1_end, chap2_end, has_chosenA1, \
-        current_message, all_message, chose_optionsA1, blit_Elara, blit_optionsA2, has_chosenA2
+    global buttons_menu, active_x, speed, counter, chap1_end, chap2_end, has_chosenA1, fixer1, \
+        current_message, all_message, chose_optionsA1, blit_Elara, blit_optionsA2, has_chosenA2, fixer2, love_scale
     font = get_font(20)
     done = False
     paused = False
@@ -251,11 +270,11 @@ def play():
     speech_frame_border = pygame.Surface((RES[0] - 84, 216), pygame.SRCALPHA)
     speech_frame_border.fill((255, 255, 255))
     speech_frame_border_rect = speech_frame_border.get_rect(center=(RES[0] / 2, 600))
-    optionA1a = Button(None, 'Explore the enchanted waterfall', (375, 350), font, (0, 0, 0), (255, 255, 255))
-    optionA1b = Button(None, 'Ask about ruins', (225, 450), font, (0, 0, 0), (255, 255, 255))
-    optionA2a = Button(None, "....", (225, 450), font, (0, 0, 0), (255, 255, 255))
-    optionA2b = Button(None, "Ask about Elara's feelings", (375, 350), font, (0, 0, 0), (255, 255, 255))
-    optionA2c = Button(None, "optionA2c", (375, 250), font, (0, 0, 0), (255, 255, 255))
+    optionA1a = Button(None, 'Explore the enchanted waterfall', (375 + fixer1, 350 + fixer1), font, black, white)
+    optionA1b = Button(None, 'Ask about ruins', (225 + fixer1, 450 + fixer1), font, black, white)
+    optionA2a = Button(None, "....", (250 + fixer2, 250 + fixer2), font, black, white)
+    optionA2b = Button(None, "Ask about Elara's feelings", (375 + fixer2, 350 + fixer2), font, black, white)
+    optionA2c = Button(None, "Share a story", (250 + fixer2, 450 + fixer2), font, black, white)
     list_button1 = [optionA1a, optionA1b]
     list_button2 = [optionA2a, optionA2b, optionA2c]
     arrow_surface = pygame.Surface((50, 50), pygame.SRCALPHA)
@@ -309,7 +328,7 @@ def play():
             list1 = [speech_frame]
             speech_frame_border.set_alpha(175)
             if blit_Elara:
-                screen.blit(Elara_main, (50, 60))
+                screen.blit(Elara_main, (RES[0] - Elara_main.get_width(), 60))
             screen.blit(speech_frame_border, speech_frame_border_rect)
             change_update(play_mouse_pos, list1)
             if counter < speed * len(message):
@@ -327,24 +346,40 @@ def play():
                         if buttons.checkforInput(play_mouse_pos):
                             active_x = 0
                             counter = 0
+                            has_chosenA1 = True
                             if buttons is optionA1a:
                                 chose_optionsA1[0] = True
+                                message = messages_ask_waterfall[active_x]
+                                love_scale += 10
+                                current_message = messages_ask_waterfall
                             if buttons is optionA1b:
                                 chose_optionsA1[1] = True
-                            has_chosenA1 = True
+                                message = messages_ask_ruins[active_x]
+                                love_scale += 5
+                                current_message = messages_ask_ruins
                             done = False
+                            print(love_scale)
                     for buttons in list_button2:
-                        if buttons.checkforInput(play_mouse_pos):
+                        if buttons.checkforInput(play_mouse_pos) and has_chosenA1:
                             active_x = 0
                             counter = 0
+                            has_chosenA2 = True
                             if buttons is optionA2a:
                                 chose_optionsA2[0] = True
+                                message = messages_stay_silent[active_x]
+                                current_message = messages_stay_silent
                             if buttons is optionA2b:
                                 chose_optionsA2[1] = True
+                                message = messages_ask_Elara_feelings[active_x]
+                                love_scale += 5
+                                current_message = messages_ask_Elara_feelings
                             if buttons is optionA2c:
                                 chose_optionsA2[2] = True
-                            has_chosenA2 = True
+                                message = messages_share_story[active_x]
+                                love_scale += 100
+                                current_message = messages_share_story
                             done = False
+                            print(love_scale)
                     if speech_frame.checkforInput(play_mouse_pos):
                         if done and active_x < len(current_message) - 1:
                             active_x += 1
@@ -357,6 +392,9 @@ def play():
                                 playing_bg1 = play_bg1
                             if chose_optionsA1[0] or chose_optionsA1[1]:
                                 blit_Elara = True
+                                if not has_chosenA2:
+                                    chose_optionsA2[1] = False
+                                    has_chosenA2 = False
                                 if active_x == len(current_message) - 1:
                                     blit_optionsA2 = True
                             done = False
@@ -367,19 +405,28 @@ def play():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         paused = not paused
+            if has_chosenA1:
+                fixer2 = 0
+            if blit_optionsA2:
+                fixer1 = 500
+                optionA1a = Button(None, 'Explore the enchanted waterfall', (375+fixer1, 350+fixer1), font, black, white)
+                optionA1b = Button(None, 'Ask about ruins', (225+fixer1, 450+fixer1), font, black, white)
+                list_button1 = [optionA1a, optionA1b]
+                change_update(play_mouse_pos, list_button1)
             if chap1_end and done and not has_chosenA1:
                 create_button_bg(375, 350, 655, 60, light_orange)
                 create_button_bg(250, 450, 400, 60, light_orange)
                 change_update(play_mouse_pos, list_button1)
-            if chose_optionsA1[1]:
-                current_message = messages_ask_ruins
-            if chose_optionsA1[0]:
-                current_message = messages_ask_waterfall
             if blit_optionsA2 and done and not has_chosenA2:
                 create_button_bg(375, 350, 655, 60, light_orange)
                 create_button_bg(250, 450, 400, 60, light_orange)
+                create_button_bg(250, 250, 400, 60, light_orange)
+                optionA2a = Button(None, "....", (250 + fixer2, 250 + fixer2), font, black, white)
+                optionA2b = Button(None, "Ask about Elara's feelings", (375 + fixer2, 350 + fixer2), font, black, white)
+                optionA2c = Button(None, "Share a story", (250 + fixer2, 450 + fixer2), font, black, white)
+                list_button2 = [optionA2a, optionA2b, optionA2c]
                 change_update(play_mouse_pos, list_button2)
-
+                print('updated')
             arrow_rect = arrow_surface.get_rect(center=(arrow_pos_x, 650))
             if done:
                 pygame.draw.polygon(arrow_surface, (100, 100, 100), [(0, 0), (0, 50), (50, 25)])
@@ -419,7 +466,8 @@ def Menu():
 
 
 def get_name():
-    global user_name, messages_ask_ruins, messages_ask_waterfall, messages_beginning
+    global user_name, messages_ask_ruins, messages_ask_waterfall, messages_beginning, messages_stay_silent, \
+        messages_ask_Elara_feelings, messages_share_story
     surface_width = 300
     input_rect_alt = Button(None, '          ', (RES[0] / 2, 300), get_font(30), (0, 0, 0), (0, 0, 0))
     list_button = [input_rect_alt]
@@ -553,8 +601,56 @@ def get_name():
                 "Elara: If you wish to explore the waterfall, I'll gladly accompany you. Together, "
                 "we can immerse ourselves in its enchanting presence and uncover its secrets."
             ]
+            messages_stay_silent = [
+                "{}: ...".format(user_name),
+                "Elara: (Understanding) It's alright if you don't have an answer right now. Sometimes, actions speak "
+                "louder than words.",
+                "Elara: Let's continue our journey to the waterfall and let the magic of this forest unfold around us."
+            ]
+            messages_ask_Elara_feelings = [
+                "{}: Well, Elara, your kindness and warmth have caught my attention. It feels as though there's a "
+                "deeper reason behind it. Can you share what you're feeling?".format(user_name),
+                "Elara: (Laughs softly) I appreciate your curiosity. The truth is, this enchanted forest has a way of "
+                "bringing people together, revealing hidden connections and shared destinies.",
+                "Elara: It's as if fate has intertwined our paths for a greater purpose.",
+                "Elara: I sense a genuine spirit within you, someone who appreciates the wonders of nature and holds "
+                "a deep curiosity for the unknown.",
+                "Elara: It's that spark that has inspired me to be open and guide you through this realm",
+                "{}: (Moved) Your words touch my heart. I believe our meeting in this magical place is no "
+                "coincidence. Now, let's begin!".format(user_name)
+            ]
+            messages_share_story = [
+                "{}: Elara, before we continue, I want to express my sincere gratitude for your "
+                "kindness and guidance thus far.".format(user_name),
+                "{}:Your presence and the way you connect with nature have already made "
+                "a profound impact on me.".format(user_name),
+                "Elara: (Curious) Thank you, {}. I'm glad to have had a positive influence on you. Is there something "
+                "specific you'd like to share or discuss?".format(user_name),
+                "{}: (Reflective) Actually, there's a personal story I'd like to share. In my childhood, "
+                "I often found solace and joy in the beauty of nature.".format(user_name),
+                "{}:There was a small creek near my home where I would spend hours exploring, captivated by the "
+                "flowing water and the gentle sounds of the forest.".format(user_name),
+                "{}: But as time went on, life became busier, and I lost touch with that connection.".format(user_name),
+                "{}: Being here with you, in this enchanting forest, brings back those cherished memories and "
+                "rekindles a sense of wonder within me.".format(user_name),
+                "Elara: (Listening attentively) Nature has a remarkable way of touching our souls and reminding us of "
+                "the magic that exists in the world.",
+                "Elara: It's heartening to hear your story and witness the reawakening of that connection.",
+                "{}: Your presence and the way you interact with nature have reminded me of the beauty and serenity "
+                "that lies within this realm.".format(user_name),
+                "{}: I am grateful to have crossed paths with you and to be embarking on this adventure "
+                "together.".format(user_name),
+                "Elara: (Smiling) The feeling is mutual. Our shared appreciation for nature brings us closer, "
+                "and I believe it's no coincidence that our paths have converged.",
+                "Elara: Together, we can continue to explore, learn, and uncover the mysteries of this enchanted "
+                "forest.",
+                "{}: (Filled with anticipation) I couldn't agree more, Elara. Thanks for your kindness, by the way, "
+                "should we go now?".format(user_name),
+                "Elara: (Excited) Absolutely, {}. The forest is waiting, ready to reveal its secrets.".format(user_name),
+                "Elara: Let's delve deeper into its wonders and forge an unforgettable connection with this magical "
+                "realm. Our adventure begins now"
+            ]
 
-            message = messages_beginning[active_x]
             Menu()
 
 
